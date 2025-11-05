@@ -1,0 +1,62 @@
+import { useEffect, useState } from "react";
+import { list } from "../../datasource/api-inventory";
+import ListItemInventory from "./ListItemInventory";
+
+const ListInventory = () => {
+
+    let [inventoryList, setInventoryList] = useState([]);
+    let [isLoading, setIsLoading] = useState(true);
+
+    const loadInventory = () => {
+        list()
+            .then((data) => {
+                if (data) {
+                    setInventoryList(data || []);
+                    setIsLoading(false);
+                }
+            }).catch(err => {
+                alert(err.message);
+                console.log(err);
+            });
+    };
+
+    useEffect(() => {
+        loadInventory();
+    }, []);
+
+    const handleRemoved = (id)=>{
+        loadInventory();
+    }
+
+    return (
+        <>
+            <div className="table-responsive" >
+                {isLoading && <div>Loading...</div>}
+                {!isLoading &&
+                    <table className="table table-bordered table-striped table-hover">
+                        <thead>
+                            {/* -- Header Row-- */}
+                            <tr>
+                                <th className="text-center">Item</th>
+                                <th className="text-center">Qty</th>
+                                <th className="text-center">Status</th>
+                                <th>Size</th>
+                                <th className="text-center">Tags</th>
+                                <th className="text-center" colSpan="3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {/* -- Repeatable Template Row -- */}
+                            {inventoryList.map(product =>
+                                <ListItemInventory 
+                                    product={product} 
+                                    onRemoved={handleRemoved}/>
+                            )}
+                        </tbody>
+                    </table>}
+            </div>
+        </>
+    );
+}
+
+export default ListInventory;
