@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import { remove } from "../../datasource/api-inventory";
+import { isAuthenticated } from "../auth/auth-helper";
 
 const ListItemInventory = ({ product, onRemoved }) => {
 
     const handleRemove = (id) => {
-        if (window.confirm('Are you sure you want to delete this item?')) {
+        if (!isAuthenticated())
+            alert('You are not authenticated. Please, proceed with sign-in first.')
+        else if (window.confirm('Are you sure you want to delete this item?')) {
             remove(id)
                 .then(data => {
                     if (data && data.success) {
