@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { signin } from "../../datasource/api-user";
 import { authenticate } from "./auth-helper";
-import { auth } from "../../firebase";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 const Signin = () => {
     let navigate = useNavigate();
@@ -23,33 +21,19 @@ const Signin = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        signInWithEmailAndPassword(auth, user.email, user.password)
-            .then((userCredential) => {
-                const userFB = userCredential.user
-                console.log(userFB);
-                authenticate(userFB.accessToken, userFB.displayName, () => {
-                    navigate(from, { replace: true });
-                });
-            })
-            .catch(err => {
+        signin(user)
+            .then((data) => {
+                if (data && data.success) {
+                    authenticate(data.token, () => {
+                        navigate(from, { replace: true });
+                    });
+                }
+                else {
+                    setErrorMsg(data.message);
+                }
+            }).catch(err => {
                 setErrorMsg(err.message);
                 console.log(err)
-            });
-    };
-
-    const handleGoogleSignIn = () => {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider)
-            .then((result) => {
-                const user = result.user;
-                console.log(user);
-                authenticate(user.accessToken, user.displayName, () => {
-                    navigate(from, { replace: true });
-                });
-            })
-            .catch((error) => {
-                setErrorMsg(error.message);
-                console.log(error);
             });
     };
 
@@ -88,14 +72,6 @@ const Signin = () => {
                         <button className="btn btn-primary" type="submit">
                             <i className="fas fa-edit"></i>
                             Submit
-                        </button>
-                        &nbsp;
-                        <button
-                            type="button"
-                            onClick={handleGoogleSignIn}
-                            className="btn btn-danger"
-                        >
-                            <i className="fab fa-google"></i> Sign in with Google
                         </button>
                         &nbsp;
                         <Link to="/users/signup" style={{ textDecoration: 'none' }}>
