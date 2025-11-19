@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { authenticate } from "./auth-helper";
 import UserModel from "../../datasource/userModel";
 import { create } from "../../datasource/api-user";
+import { auth } from "../../firebase";
+import { createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
 
 const Signup = () => {
     let navigate = useNavigate();
@@ -14,13 +16,26 @@ const Signup = () => {
         setUser((formData) => ({ ...formData, [name]: value }));
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
-        if(user.password !== document.getElementById('confirmPasswordTextField').value){
-            setErrorMsg("ERROR: Passwords don't match!")    
+        if (user.password !== document.getElementById('confirmPasswordTextField').value) {
+            setErrorMsg("ERROR: Passwords don't match!")
         } else {
-            create(user)
+            try {
+                // Create the user with Firebase Authentication
+                const userCredential = await createUserWithEmailAndPassword(auth, user.email, user.password);
+                const userFB = userCredential.user;
+                console.log(userFB);
+
+                // Update the user's profile with the display name
+                await updateProfile(userFB, {
+                    displayName: user.firstName + ' ' + user.lastName
+                })
+
+                const submitUser = user;
+                submitUser.uid = userFB.uid;
+                create(submitUser)
                 .then((data) => {
                     if (data && data.success) {
                         alert(data.message);
@@ -33,6 +48,12 @@ const Signup = () => {
                     setErrorMsg(err.message);
                     console.log(err)
                 });
+            } catch (err) {
+                setErrorMsg(err.message);
+                console.log(err)
+            }
+
+            
         }
     };
 
@@ -62,17 +83,6 @@ const Signup = () => {
                                 placeholder="Enter last name"
                                 name="lastName"
                                 value={user.lastName || ''}
-                                onChange={handleChange}>
-                            </input>
-                        </div>
-                        <br />
-                        <div className="form-group">
-                            <label htmlFor="usernameTextField">username</label>
-                            <input type="text" className="form-control"
-                                id="usernameTextField"
-                                placeholder="Enter username"
-                                name="username"
-                                value={user.username || ''}
                                 onChange={handleChange}>
                             </input>
                         </div>
@@ -114,7 +124,7 @@ const Signup = () => {
                             <i className="fas fa-edit"></i>
                             Submit
                         </button>
-                        &nbsp; 
+                        &nbsp;
                         <Link href="#" to="/users/signin" className="btn btn-warning">
                             <i className="fas fa-undo"></i>
                             Cancel
