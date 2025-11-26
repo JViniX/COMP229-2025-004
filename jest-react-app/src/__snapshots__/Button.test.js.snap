@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`renders Button correctly 1`] = `
+<DocumentFragment>
+  <button>
+    Click Me
+  </button>
+</DocumentFragment>
+`;
